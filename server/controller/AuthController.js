@@ -10,7 +10,7 @@ const AuthController = {
                 id: id,
             },
             process.env.JWT_ACCESS_KEY,
-            {expiresIn: "1d"}
+            {expiresIn: "10m"}
         );
     },
     generateRefreshToken: (id) => {
@@ -84,18 +84,17 @@ const AuthController = {
                 })
             }
             const userId = user?._id
-            const accessToken = AuthController.generateAccessToken(userId)
-            const refreshToken = AuthController.generateRefreshToken(userId)
+            const accessToken = await AuthController.generateAccessToken(userId)
+            const refreshToken = await AuthController.generateRefreshToken(userId)
             const payload = {
                 user_id: userId,
                 token: refreshToken
             }
             const refreshModel = new RefreshTokenModel(payload)
             await refreshModel.save()
-            res.cookie("refreshToken", refreshToken, {
+            await res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
                 secure: false,
-                path: "/",
                 sameSite: "strict",
             });
             res.status(200).json({
@@ -113,7 +112,7 @@ const AuthController = {
     requestRefreshToken: async (req, res) => {
         //Take refresh token from user
         const refreshToken = req.cookies.refreshToken;
-        console.log("refreshToken", refreshToken)
+        console.log("refreshToken!!!!", refreshToken)
         //Send error if token is not valid
         if (!refreshToken) return res.status(401).json("You're not authenticated");
         const refreshTokens = await RefreshTokenModel.find({
@@ -126,7 +125,6 @@ const AuthController = {
             if (err) {
                 console.log(err);
             }
-            // refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
             //create new access token, refresh token and send to user
             const newAccessToken = AuthController.generateAccessToken(user?.id);
             const newRefreshToken = AuthController.generateRefreshToken(user?.id);
@@ -138,7 +136,6 @@ const AuthController = {
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
                 secure: false,
-                path: "/",
                 sameSite: "strict",
             });
             res.status(200).json({
@@ -153,6 +150,22 @@ const AuthController = {
             res.status(200).json({
                 error: false,
                 message: "Logged out successfully!"
+            })
+        } catch (error) {
+            return res.status(500).json({
+                message: error.message || error,
+                error: true
+            })
+        }
+    },
+    //
+    getAll: async (req, res) => {
+        try {
+            const user = await UserModel.find().select("-password")
+            return res.json({
+                message: "All user",
+                data: user,
+                success: true
             })
         } catch (error) {
             return res.status(500).json({

@@ -5,10 +5,12 @@ import {login} from "../apis/auth";
 import toast from 'react-hot-toast';
 import {setToken} from "../redux/userSlice";
 import {useDispatch} from "react-redux";
+import Loading from "../components/Loading";
 
 const Login = () => {
     const location = useLocation()
     const dispatch = useDispatch()
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
     const [data, setData] = useState({
         email: "",
@@ -28,26 +30,30 @@ const Login = () => {
         e.preventDefault();
         e.stopPropagation();
         try {
+            setLoading(true)
             const response = await login(data);
             toast.success(response?.message)
-            console.log(response)
             if (response.success) {
                 dispatch(setToken(response?.accessToken))
-                localStorage.setItem('accessToken', response?.accessToken)
-
                 setData({
                     email: "",
                     password: "",
                 })
+
                 navigate('/')
+                setLoading(false)
+
             }
+            setLoading(false)
         } catch (e) {
+            setLoading(false)
             toast.error(e?.response?.data?.message)
         }
 
     }
     return (
         <div className='mt-5'>
+
             <div className='bg-white w-full max-w-md  rounded overflow-hidden p-4 mx-auto'>
 
                 <div className='w-fit mx-auto mb-2'>
@@ -93,7 +99,9 @@ const Login = () => {
                     <button
                         className='bg-primary text-lg  px-4 py-1 hover:bg-secondary rounded mt-2 font-bold text-white leading-relaxed tracking-wide'
                     >
-                        Đăng nhập
+                        {
+                            loading ? <Loading/> : "Đăng nhập "
+                        }
                     </button>
 
                 </form>
@@ -102,6 +110,7 @@ const Login = () => {
                     <Link to={"/register"} className='hover:text-primary font-semibold'>Đăng ký</Link>
                 </p>
             </div>
+
         </div>
     )
 }

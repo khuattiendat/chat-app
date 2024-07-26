@@ -1,8 +1,7 @@
-import axios from 'axios'
 import React, {useEffect} from 'react'
 import {useDispatch, useSelector} from 'react-redux'
 import {Outlet, useLocation, useNavigate} from 'react-router-dom'
-import {logout, setOnlineUser, setSocketConnection, setUser} from '../redux/userSlice'
+import {logout, setAll, setOnlineUser, setSocketConnection, setUser} from '../redux/userSlice'
 import Sidebar from '../components/Sidebar'
 import logo from '../assets/logo.png'
 import io from 'socket.io-client'
@@ -11,17 +10,14 @@ import {createAxios} from "../utils/createInstance";
 
 const Home = () => {
     const user = useSelector(state => state.user)
-    const accessToken = localStorage.getItem('accessToken')
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const location = useLocation()
-    const axiosJWT = createAxios(user, dispatch, setUser);
-    console.log('user', user)
+    const axiosJWT = createAxios(user, dispatch, setAll);
     const fetchUserDetails = async () => {
         try {
-            const userDetail = await getUserDetail(accessToken, axiosJWT);
+            const userDetail = await getUserDetail(user?.accessToken, axiosJWT);
             dispatch(setUser(userDetail?.data))
-            console.log(userDetail)
             console.log("current user Details", userDetail)
         } catch (error) {
             console.log("error", error)
@@ -29,7 +25,7 @@ const Home = () => {
     }
 
     useEffect(() => {
-        if (!localStorage.getItem('accessToken')) {
+        if (!user.accessToken) {
             navigate('/login')
         }
         fetchUserDetails()
@@ -39,7 +35,7 @@ const Home = () => {
     useEffect(() => {
         const socketConnection = io(process.env.REACT_APP_BACKEND_URL, {
             auth: {
-                accessToken: localStorage.getItem('accessToken')
+                accessToken: user?.accessToken
             },
         })
 

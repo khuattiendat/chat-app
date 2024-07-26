@@ -16,6 +16,7 @@ import {
 const persistConfig = {
     key: 'root',
     storage: storage,
+    version: 1
 }
 export const rootReducers = combineReducers({
     user: userReducer,
@@ -26,8 +27,9 @@ const store = configureStore({
     reducer: persistedReducer,
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
-            serializableCheck: false
-
+            serializableCheck: {
+                ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+            },
         }),
 })
 setupListeners(store.dispatch)

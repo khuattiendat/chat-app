@@ -1,18 +1,21 @@
 import axios from "axios";
 import {jwtDecode as jwt_decode} from 'jwt-decode';
 
+const URL = process.env.REACT_APP_BACKEND_URL
 const refreshToken = async () => {
     try {
-        const res = await axios.post("http://localhost:8080/api/refresh-token"
+        const res = await axios.post(`${URL}/api/refresh-token`, {}, {
+                withCredentials: true
+            }
         )
-        return res.data.data;
+        return res.data;
     } catch (err) {
         console.log(err);
     }
 };
 export const createAxios = (user, dispatch, stateSuccess) => {
     const newInstance = axios.create({
-        baseURL: "http://localhost:8080/api",
+        baseURL: `${URL}/api`,
     });
     newInstance.interceptors.request.use(
         async (config) => {
@@ -20,9 +23,9 @@ export const createAxios = (user, dispatch, stateSuccess) => {
             const decodedToken = jwt_decode(user?.accessToken);
             if (decodedToken.exp < date.getTime() / 1000) {
                 const dataRefresh = await refreshToken();
-                console.log("dataRefresh", dataRefresh)
+                console.log("dataRefresh", user)
                 let newUserData = {
-                    ...(user),
+                    ...user,
                     accessToken: dataRefresh?.accessToken,
                 }
                 dispatch(stateSuccess(newUserData));

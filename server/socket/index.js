@@ -32,7 +32,6 @@ try {
 
         //current user details
         const user = await getUserDetailsFromToken(accessToken)
-        console.log("uest", user)
         //create a room
         socket.join(user?._id?.toString())
         onlineUser.add(user?._id?.toString())

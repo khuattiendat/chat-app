@@ -14,6 +14,7 @@ const router = express.Router()
 router.post('/register', AuthController.register)
 //check user email
 router.post('/email', checkEmail)
+router.get('/test', AuthController.getAll)
 //login
 router.post('/login', AuthController.login)
 //check user password

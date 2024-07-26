@@ -11,7 +11,7 @@ import {FiArrowUpLeft} from "react-icons/fi";
 import SearchUser from './SearchUser';
 import {FaImage} from "react-icons/fa6";
 import {FaVideo} from "react-icons/fa6";
-import {logout, setUser} from '../redux/userSlice';
+import {logout, setAll, setUser} from '../redux/userSlice';
 import {logoutDB} from "../apis/auth";
 import {createAxios} from "../utils/createInstance";
 import toast from "react-hot-toast";
@@ -25,8 +25,8 @@ const Sidebar = () => {
     const socketConnection = useSelector(state => state?.user?.socketConnection)
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const accessToken = localStorage.getItem('accessToken')
-    const axiosJWT = createAxios(user, dispatch, setUser);
+    const accessToken = user?.accessToken
+    const axiosJWT = createAxios(user, dispatch, setAll);
     useEffect(() => {
         console.log("update user")
         if (socketConnection) {
@@ -64,12 +64,10 @@ const Sidebar = () => {
             const res = await logoutDB(accessToken, axiosJWT)
             dispatch(logout())
             navigate("/login")
-            localStorage.clear()
             toast.success(res?.message)
         } catch (error) {
             console.log("error", error)
         }
-
     }
 
     return (
@@ -143,6 +141,7 @@ const Sidebar = () => {
                                             name={conv?.userDetails?.name}
                                             width={40}
                                             height={40}
+                                            userId={conv?.userDetails?._id}
                                         />
                                     </div>
                                     <div>

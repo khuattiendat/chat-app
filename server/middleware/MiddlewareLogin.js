@@ -3,6 +3,7 @@ require('dotenv').config();
 const middlewareLogin = {
     verifyToken: async (req, res, next) => {
         const token = req.headers.token;
+        console.log("token 123", token)
         if (token) {
             // token có dạng token: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiYWRtaW4iOmZhbHNlLCJpYXQiOjE2ODc3MTM2MzYsImV4cCI6MTcxOTI0OTYzNn0.j9WfXV4w4kWxRtJj-irCPaGxr1idffibZuVPnzrILVU
             const accessToken = token?.split(" ")[1];

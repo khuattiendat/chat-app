@@ -5,8 +5,10 @@ import uploadFile from '../helpers/uploadFile';
 import axios from 'axios'
 import toast from 'react-hot-toast';
 import {register} from "../apis/auth";
+import Loading from "../components/Loading";
 
 const Register = () => {
+    const [loading, setLoading] = useState(false)
     const [data, setData] = useState({
         name: "",
         email: "",
@@ -52,6 +54,7 @@ const Register = () => {
         e.stopPropagation()
 
         try {
+            setLoading(true)
             const response = await register(data)
 
             toast.success(response?.message)
@@ -64,8 +67,11 @@ const Register = () => {
                     profile_pic: ""
                 })
                 navigate('/login')
+                setLoading(false)
             }
+            setLoading(false)
         } catch (error) {
+            setLoading(false)
             toast.error(error?.response?.data?.message)
         }
     }
@@ -75,7 +81,7 @@ const Register = () => {
         <div className='mt-5'>
             <div className='bg-white w-full max-w-md  rounded overflow-hidden p-4 mx-auto'>
                 <h3>Chào mừng đến với
-                <span className="font-semibold"> NOVA</span>
+                    <span className="font-semibold"> NOVA</span>
                 </h3>
 
                 <form className='grid gap-4 mt-5' onSubmit={handleSubmit}>
@@ -157,13 +163,16 @@ const Register = () => {
                     <button
                         className='bg-primary text-lg  px-4 py-1 hover:bg-secondary rounded mt-2 font-bold text-white leading-relaxed tracking-wide'
                     >
-                        Register
+                        {
+                            loading ? <Loading/> : "Register"
+                        }
                     </button>
 
                 </form>
 
                 <p className='my-3 text-center'>Bạn đã có tài khoản? <Link to={"/login"}
-                                                                             className='hover:text-primary font-semibold'>Đăng nhập</Link>
+                                                                           className='hover:text-primary font-semibold'>Đăng
+                    nhập</Link>
                 </p>
             </div>
         </div>

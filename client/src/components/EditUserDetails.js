@@ -2,19 +2,18 @@ import React, {useEffect, useRef, useState} from 'react'
 import Avatar from './Avatar'
 import uploadFile from '../helpers/uploadFile'
 import Divider from './Divider'
-import axios from 'axios'
 import taost from 'react-hot-toast'
 import {useDispatch} from 'react-redux'
-import {setUser} from '../redux/userSlice'
+import {setAll, setUser} from '../redux/userSlice'
 import {updateUser} from "../apis/user";
 import {createAxios} from "../utils/createInstance";
 import Loading from "./Loading";
 
 
 const EditUserDetails = ({onClose, user}) => {
-    const accessToken = localStorage.getItem('accessToken')
+    const accessToken = user?.accessToken
     const dispatch = useDispatch()
-    const axiosJWT = createAxios(user, dispatch, setUser);
+    const axiosJWT = createAxios(user, dispatch, setAll);
     const [loading, setLoading] = useState(false)
     const [data, setData] = useState({
         name: user?.user,
