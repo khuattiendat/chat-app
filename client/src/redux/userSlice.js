@@ -4,6 +4,7 @@ const initialState = {
     _id: "",
     name: "",
     email: "",
+    phone: "",
     profile_pic: "",
     accessToken: "",
     onlineUser: [],
@@ -17,12 +18,14 @@ export const userSlice = createSlice({
         setUser: (state, action) => {
             state._id = action?.payload?._id
             state.name = action?.payload?.name
+            state.phone = action?.payload?.phone
             state.email = action?.payload?.email
             state.profile_pic = action?.payload?.profile_pic
         },
         setAll: (state, action) => {
             state._id = action?.payload?._id
             state.name = action?.payload.name
+            state.phone = action?.payload
             state.email = action?.payload.email
             state.profile_pic = action?.payload.profile_pic
             state.accessToken = action?.payload.accessToken
@@ -35,6 +38,7 @@ export const userSlice = createSlice({
             state._id = ""
             state.name = ""
             state.email = ""
+            state.phone = ""
             state.profile_pic = ""
             state.token = ""
             state.accessToken = ""

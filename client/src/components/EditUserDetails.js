@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from 'react'
 import Avatar from './Avatar'
 import uploadFile from '../helpers/uploadFile'
 import Divider from './Divider'
-import taost from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import {useDispatch} from 'react-redux'
 import {setAll, setUser} from '../redux/userSlice'
 import {updateUser} from "../apis/user";
@@ -17,7 +17,8 @@ const EditUserDetails = ({onClose, user}) => {
     const [loading, setLoading] = useState(false)
     const [data, setData] = useState({
         name: user?.user,
-        profile_pic: user?.profile_pic
+        profile_pic: user?.profile_pic,
+        phone: user?.phone
     })
     const uploadPhotoRef = useRef()
 
@@ -67,22 +68,23 @@ const EditUserDetails = ({onClose, user}) => {
         try {
             let payload = {
                 name: data.name,
-                profile_pic: data.profile_pic
+                profile_pic: data.profile_pic,
+                phone: data.phone
             }
             const response = await updateUser(payload, accessToken, axiosJWT)
             if (response.success) {
                 dispatch(setUser(response.data))
                 onClose()
             }
-            taost.success(response?.message)
+            toast.success(response?.message)
         } catch (error) {
             console.log(error.message)
-            taost.error("Something went wrong!")
+            toast.error("Something went wrong!")
         }
     }
     return (
         <div
-            className='fixed top-0 bottom-0 left-0 right-0 bg-gray-700 bg-opacity-40 flex justify-center items-center z-10'>
+            className='edit__user fixed top-0 bottom-0 left-0 right-0 bg-gray-700 bg-opacity-40 flex justify-center items-center z-10'>
             <div className='bg-white p-4 py-6 m-1 rounded w-full max-w-sm'>
                 <h2 className='font-semibold'>Profile Details</h2>
                 <p className='text-sm '>Edit user details</p>
@@ -95,6 +97,17 @@ const EditUserDetails = ({onClose, user}) => {
                             name='name'
                             id='name'
                             value={data.name}
+                            onChange={handleOnChange}
+                            className='w-full py-1 px-2 focus:outline-primary border-0.5'
+                        />
+                    </div>
+                    <div className='flex flex-col gap-1'>
+                        <label htmlFor='name'>Số điện thoại:</label>
+                        <input
+                            type='text'
+                            name='phone'
+                            id='phone'
+                            value={data?.phone}
                             onChange={handleOnChange}
                             className='w-full py-1 px-2 focus:outline-primary border-0.5'
                         />

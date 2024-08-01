@@ -1,34 +1,29 @@
 const express = require('express')
-const checkEmail = require('../controller/checkEmail')
-const checkPassword = require('../controller/checkPassword')
-const userDetails = require('../controller/userDetails')
-const logout = require('../controller/logout')
-const updateUserDetails = require('../controller/updateUserDetails')
-const searchUser = require('../controller/searchUser')
 const AuthController = require('../controller/AuthController')
+const userController = require('../controller/userController')
 const MiddlewareLogin = require('../middleware/MiddlewareLogin')
+const ConversationController = require('../controller/ConversationController')
 
 const router = express.Router()
 
 //create user api
 router.post('/register', AuthController.register)
-//check user email
-router.post('/email', checkEmail)
+// test
 router.get('/test', AuthController.getAll)
 //login
 router.post('/login', AuthController.login)
-//check user password
-router.post('/password', checkPassword)
 // refresh token
 router.post('/refresh-token', AuthController.requestRefreshToken)
-//login user details
-router.get('/user-details', MiddlewareLogin.verifyToken, userDetails)
+//get user details
+router.get('/user-details', MiddlewareLogin.verifyToken, userController.getUserById)
 //logout user
 router.post('/logout', MiddlewareLogin.verifyToken, AuthController.logout)
 //update user details
-router.post('/update-user', MiddlewareLogin.verifyToken, updateUserDetails)
+router.post('/update-user', MiddlewareLogin.verifyToken, userController.updateUser)
 //search user
-router.post("/search-user", searchUser)
+router.post("/search-user", MiddlewareLogin.verifyToken, userController.searchUser)
+//get conversation by id
+router.get("/conversation/:id", MiddlewareLogin.verifyToken, ConversationController.getConversationById)
 
 
 module.exports = router

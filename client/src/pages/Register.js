@@ -13,7 +13,8 @@ const Register = () => {
         name: "",
         email: "",
         password: "",
-        profile_pic: ""
+        profile_pic: "",
+        phone: ""
     })
     const [uploadPhoto, setUploadPhoto] = useState("")
     const navigate = useNavigate()
@@ -108,6 +109,19 @@ const Register = () => {
                             placeholder='enter your email'
                             className='bg-slate-100 px-2 py-1 focus:outline-primary'
                             value={data.email}
+                            onChange={handleOnChange}
+                            required
+                        />
+                    </div>
+                    <div className='flex flex-col gap-1'>
+                        <label htmlFor='email'>Số điện thoại :</label>
+                        <input
+                            type='text'
+                            id='email'
+                            name='phone'
+                            placeholder='enter your email'
+                            className='bg-slate-100 px-2 py-1 focus:outline-primary'
+                            value={data.phone}
                             onChange={handleOnChange}
                             required
                         />

@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react'
-import {useSelector} from 'react-redux'
+import {useDispatch, useSelector} from 'react-redux'
 import {Link, useParams} from 'react-router-dom'
 import Avatar from './Avatar'
 import {HiDotsVertical} from "react-icons/hi";
@@ -13,17 +13,31 @@ import Loading from './Loading';
 import backgroundImage from '../assets/wallapaper.jpeg'
 import {IoMdSend} from "react-icons/io";
 import moment from 'moment'
+import {getConversationById} from "../apis/conversations";
+import {createAxios} from "../utils/createInstance";
+import {setAll} from "../redux/userSlice";
 
 const MessagePage = () => {
-    const params = useParams()
+    const params = useParams();
+    const {groupId, userId} = params
+    const dispatch = useDispatch()
+    const [data, setData] = useState()
     const socketConnection = useSelector(state => state?.user?.socketConnection)
     const user = useSelector(state => state?.user)
+    const onlineUser = user?.onlineUser;
+    const axiosJWT = createAxios(user, dispatch, setAll);
+    const [dataGroup, setDataGroup] = useState({
+        conversationName: "",
+        conversationType: "",
+        avatar: "",
+        members: []
+    })
     const [dataUser, setDataUser] = useState({
         name: "",
         email: "",
+        phone: "",
         profile_pic: "",
-        online: false,
-        _id: ""
+        online: false
     })
     const [openImageVideoUpload, setOpenImageVideoUpload] = useState(false)
     const [message, setMessage] = useState({
@@ -34,7 +48,7 @@ const MessagePage = () => {
     const [loading, setLoading] = useState(false)
     const [allMessage, setAllMessage] = useState([])
     const currentMessage = useRef(null)
-
+    const checkUserOnline = dataGroup.members ? dataGroup.members.some((item) => onlineUser.includes(item.toString())) : dataUser.online
     useEffect(() => {
         if (currentMessage.current) {
             currentMessage.current.scrollIntoView({behavior: 'smooth', block: 'end'})
@@ -95,22 +109,40 @@ const MessagePage = () => {
 
     useEffect(() => {
         if (socketConnection) {
-            socketConnection.emit('message-page', params.userId)
+            if (groupId) {
+                socketConnection.emit('message-page', groupId)
 
-            socketConnection.emit('seen', params.userId)
+                socketConnection.emit('seen', user?._id)
+                socketConnection.on('message-user', (data) => {
+                    console.log("message-user", data)
+                    // trả về thông tin user người gửi
+                    setDataGroup(data)
+                })
 
-            socketConnection.on('message-user', (data) => {
-                setDataUser(data)
-            })
 
-            socketConnection.on('message', (data) => {
-                console.log('message data', data)
-                setAllMessage(data)
-            })
-
+                socketConnection.on('message', (data) => {
+                    // trả về toàn bộ tin nhắn
+                    console.log('message data', data)
+                    setAllMessage(data)
+                })
+            }
+            if (userId) {
+                socketConnection.emit('message-user-page', userId)
+                socketConnection.emit('seen', userId)
+                socketConnection.on('message-user', (data) => {
+                    console.log("message-user", data)
+                    // trả về thông tin user người gửi
+                    setDataUser(data)
+                })
+                socketConnection.on('message', (data) => {
+                    // trả về toàn bộ tin nhắn
+                    console.log('message data', data)
+                    setAllMessage(data)
+                })
+            }
 
         }
-    }, [socketConnection, params?.userId, user])
+    }, [socketConnection, groupId, user])
 
     const handleOnChange = (e) => {
         const {name, value} = e.target
@@ -128,26 +160,33 @@ const MessagePage = () => {
 
         if (message.text || message.imageUrl || message.videoUrl) {
             if (socketConnection) {
-                socketConnection.emit('new message', {
-                    sender: user?._id,
-                    receiver: params.userId,
+                let payload = {
+                    currentUserId: user?._id,
+                    conversationId: groupId,
                     text: message.text,
                     imageUrl: message.imageUrl,
                     videoUrl: message.videoUrl,
-                    msgByUserId: user?._id
-                })
+                    msgByUserId: {
+                        userId: user?._id,
+                        name: user?.name
+                    }
+                }
+
+
+                socketConnection.emit('new message', payload)
                 setMessage({
                     text: "",
                     imageUrl: "",
                     videoUrl: ""
                 })
+
             }
         }
     }
 
 
     return (
-        <div style={{backgroundImage: `url(${backgroundImage})`}} className='bg-no-repeat bg-cover'>
+        <div style={{backgroundImage: `url(${backgroundImage})`}} className='bg-no-repeat bg-cover message__page'>
             <header className='sticky top-0 h-16 bg-white flex justify-between items-center px-4'>
                 <div className='flex items-center gap-4'>
                     <Link to={"/"} className='lg:hidden'>
@@ -157,16 +196,22 @@ const MessagePage = () => {
                         <Avatar
                             width={50}
                             height={50}
-                            imageUrl={dataUser?.profile_pic}
-                            name={dataUser?.name}
-                            userId={dataUser?._id}
+                            imageUrl={dataGroup?.avatar}
+                            name={dataGroup?.conversationName}
+                            userId={dataGroup?._id}
                         />
                     </div>
                     <div>
-                        <h3 className='font-semibold text-lg my-0 text-ellipsis line-clamp-1'>{dataUser?.name}</h3>
+                        <h3 className='font-semibold text-lg my-0 text-ellipsis line-clamp-1'>{dataGroup.conversationName ? dataGroup.conversationName : dataUser?.name}
+                            {dataGroup.members && dataGroup.members.length > 2 && (
+                                <span> (Nhóm)</span>
+                            )}
+                        < /h3>
                         <p className='-my-2 text-sm'>
                             {
-                                dataUser.online ? <span className='text-primary'>online</span> :
+
+                                checkUserOnline ?
+                                    <span className='text-primary'>online</span> :
                                     <span className='text-slate-400'>offline</span>
                             }
                         </p>
@@ -191,8 +236,14 @@ const MessagePage = () => {
                         allMessage.map((msg, index) => {
                             return (
                                 <div
-                                    className={` p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${user._id === msg?.msgByUserId ? "ml-auto bg-teal-100" : "bg-white"}`}>
+                                    className={` p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${user._id === msg?.msgByUserId?.userId ? "ml-auto bg-teal-100" : "bg-white"}`}>
                                     <div className='w-full relative'>
+                                        {
+                                            <div className='mr-8'>
+                                                <span
+                                                    className='italic text-xs font-thin decoration-1'>{msg?.msgByUserId?.name}</span>
+                                            </div>
+                                        }
                                         {
                                             msg?.imageUrl && (
                                                 <img
@@ -339,5 +390,4 @@ const MessagePage = () => {
         </div>
     )
 }
-
 export default MessagePage

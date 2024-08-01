@@ -3,7 +3,6 @@ const UserModel = require('../models/UserModel')
 
 const getUserDetailsFromToken = async (accessToken) => {
     try {
-        console.log('accessToken', accessToken)
         if (!accessToken) {
             return {
                 message: "session out",

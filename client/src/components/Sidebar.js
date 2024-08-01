@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import {IoChatbubbleEllipses} from "react-icons/io5";
-import {FaUserPlus} from "react-icons/fa";
+import {FaUserPlus, FaUsers} from "react-icons/fa";
 import {NavLink, useNavigate} from 'react-router-dom';
 import {BiLogOut} from "react-icons/bi";
 import Avatar from './Avatar'
@@ -15,25 +15,30 @@ import {logout, setAll, setUser} from '../redux/userSlice';
 import {logoutDB} from "../apis/auth";
 import {createAxios} from "../utils/createInstance";
 import toast from "react-hot-toast";
+import NewGroupUser from "./NewGroupUser";
 
 const Sidebar = () => {
     const user = useSelector(state => state?.user)
     const [editUserOpen, setEditUserOpen] = useState(false)
     const [allUser, setAllUser] = useState([])
     const [openSearchUser, setOpenSearchUser] = useState(false)
+    const [openGroup, setOpenGroup] = useState(false)
     const [loading, setLoading] = useState(false)
     const socketConnection = useSelector(state => state?.user?.socketConnection)
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const accessToken = user?.accessToken
     const axiosJWT = createAxios(user, dispatch, setAll);
+    console.log("test2")
     useEffect(() => {
-        console.log("update user")
+        console.log("test1")
         if (socketConnection) {
+            // gửi user id để lấy conversation
             socketConnection.emit('sidebar', user._id)
 
+            // trả về data của conversation ( lastMsg, sender, receiver)
             socketConnection.on('conversation', (data) => {
-                console.log('conversation', data)
+                console.log("data", data)
 
                 const conversationUserData = data.map((conversationUser, index) => {
                     if (conversationUser?.sender?._id === conversationUser?.receiver?._id) {
@@ -71,21 +76,25 @@ const Sidebar = () => {
     }
 
     return (
-        <div className='w-full h-full grid grid-cols-[48px,1fr] bg-white'>
+        <div className='w-full h-full grid grid-cols-[48px,1fr] bg-white sidebar'>
             <div
                 className='bg-slate-100 w-12 h-full rounded-tr-lg rounded-br-lg py-5 text-slate-600 flex flex-col justify-between'>
                 <div>
                     <NavLink
                         className={({isActive}) => `w-12 h-12 flex justify-center items-center cursor-pointer hover:bg-slate-200 rounded ${isActive && "bg-slate-200"}`}
-                        title='chat'>
+                        title='chat' to={"/"}>
                         <IoChatbubbleEllipses
                             size={20}
                         />
                     </NavLink>
 
-                    <div title='add friend' onClick={() => setOpenSearchUser(true)}
+                    {/*<div title='add friend' onClick={() => setOpenSearchUser(true)}*/}
+                    {/*     className='w-12 h-12 flex justify-center items-center cursor-pointer hover:bg-slate-200 rounded'>*/}
+                    {/*    <FaUserPlus size={20}/>*/}
+                    {/*</div>*/}
+                    <div title='add friend' onClick={() => setOpenGroup(true)}
                          className='w-12 h-12 flex justify-center items-center cursor-pointer hover:bg-slate-200 rounded'>
-                        <FaUserPlus size={20}/>
+                        <FaUsers size={20}/>
                     </div>
                 </div>
 
@@ -133,19 +142,28 @@ const Sidebar = () => {
                     {
                         allUser.map((conv, index) => {
                             return (
-                                <NavLink to={"/" + conv?.userDetails?._id} key={conv?._id}
-                                         className='flex items-center gap-2 py-3 px-2 border border-transparent hover:border-primary rounded hover:bg-slate-100 cursor-pointer'>
+                                <NavLink
+                                    to={conv?.conversationType === 'group' ? "/group/" + conv?._id : "/" + conv?._id}
+                                    key={conv?._id}
+                                    className='flex items-center gap-2 py-3 px-2 border border-transparent hover:border-primary rounded hover:bg-slate-100 cursor-pointer'>
                                     <div>
                                         <Avatar
-                                            imageUrl={conv?.userDetails?.profile_pic}
-                                            name={conv?.userDetails?.name}
+                                            imageUrl={conv.avatar ? conv?.avatar : conv?.userDetails?.profile_pic}
+                                            name={conv.conversationName ? conv?.conversationName : conv?.userDetails?.name}
                                             width={40}
                                             height={40}
                                             userId={conv?.userDetails?._id}
                                         />
                                     </div>
                                     <div>
-                                        <h3 className='text-ellipsis line-clamp-1 font-semibold text-base'>{conv?.userDetails?.name}</h3>
+                                        <h3 className='text-ellipsis line-clamp-1 font-semibold text-base'>{conv.conversationType === 'group' ? conv?.conversationName : conv?.userDetails?.name}
+                                            {
+                                                conv?.conversationType === 'group' && (
+                                                    <span
+                                                        className='text-xs text-slate-500'> ({conv?.members?.length} members)</span>
+                                                )
+                                            }
+                                        </h3>
                                         <div className='text-slate-500 text-xs flex items-center gap-1'>
                                             <div className='flex items-center gap-1'>
                                                 {
@@ -194,7 +212,12 @@ const Sidebar = () => {
                     <SearchUser onClose={() => setOpenSearchUser(false)}/>
                 )
             }
-
+            {/*    group user*/}
+            {
+                openGroup && (
+                    <NewGroupUser onClose={() => setOpenGroup(false)}/>
+                )
+            }
         </div>
     )
 }

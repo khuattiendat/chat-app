@@ -2,7 +2,6 @@ const UserModel = require("../models/UserModel");
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const RefreshTokenModel = require("../models/RefreshToken");
-const {raw} = require("express");
 const AuthController = {
     generateAccessToken: (id) => {
         return jwt.sign(
@@ -10,7 +9,7 @@ const AuthController = {
                 id: id,
             },
             process.env.JWT_ACCESS_KEY,
-            {expiresIn: "10m"}
+            {expiresIn: "1d"}
         );
     },
     generateRefreshToken: (id) => {
@@ -24,10 +23,16 @@ const AuthController = {
     },
     register: async (req, res) => {
         try {
-            const {name, email, password, profile_pic} = req.body
+            const {name, email, password, phone, profile_pic} = req.body
 
             const checkEmail = await UserModel.findOne({email}) //{ name,email}  // null
-
+            const checkPhone = await UserModel.findOne({phone}) //{ name,email}  // null
+            if (checkPhone) {
+                return res.status(400).json({
+                    message: "Already user exits",
+                    error: true,
+                })
+            }
             if (checkEmail) {
                 return res.status(400).json({
                     message: "Already user exits",
@@ -42,6 +47,7 @@ const AuthController = {
             const payload = {
                 name,
                 email,
+                phone,
                 profile_pic,
                 password: hashPassword
             }
@@ -112,7 +118,6 @@ const AuthController = {
     requestRefreshToken: async (req, res) => {
         //Take refresh token from user
         const refreshToken = req.cookies.refreshToken;
-        console.log("refreshToken!!!!", refreshToken)
         //Send error if token is not valid
         if (!refreshToken) return res.status(401).json("You're not authenticated");
         const refreshTokens = await RefreshTokenModel.find({
@@ -128,11 +133,11 @@ const AuthController = {
             //create new access token, refresh token and send to user
             const newAccessToken = AuthController.generateAccessToken(user?.id);
             const newRefreshToken = AuthController.generateRefreshToken(user?.id);
-            await RefreshTokenModel.findOneAndUpdate({
-                token: refreshToken,
-            }, {
-                token: newRefreshToken,
-            })
+            //update refresh token in database
+            await RefreshTokenModel.findOneAndUpdate(
+                {user_id: user?.id},
+                {token: newRefreshToken}
+            );
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
                 secure: false,

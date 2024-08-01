@@ -13,7 +13,6 @@ export const register = async (data) => {
     return response.data;
 }
 export const logoutDB = async (accessToken, axiosJWT) => {
-    console.log(accessToken)
     const res = await axiosJWT.post("/logout", {}, {
         headers: {
             token: `Bearer ${accessToken}`

@@ -20,3 +20,13 @@ export const updateUser = async (data, accessToken, axiosJWT) => {
     })
     return response?.data
 }
+export const searchUser = async (data, accessToken, axiosJWT) => {
+    const URL = '/search-user';
+    const response = await axiosJWT.post(URL, data, {
+        headers: {
+            token: `Bearer ${accessToken}`
+        },
+        withCredentials: true
+    })
+    return response?.data
+}

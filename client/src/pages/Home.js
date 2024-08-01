@@ -18,7 +18,6 @@ const Home = () => {
         try {
             const userDetail = await getUserDetail(user?.accessToken, axiosJWT);
             dispatch(setUser(userDetail?.data))
-            console.log("current user Details", userDetail)
         } catch (error) {
             console.log("error", error)
         }
@@ -40,7 +39,7 @@ const Home = () => {
         })
 
         socketConnection.on('onlineUser', (data) => {
-            console.log(data)
+            console.log("data", data)
             dispatch(setOnlineUser(data))
         })
 
@@ -54,7 +53,7 @@ const Home = () => {
 
     const basePath = location.pathname === '/'
     return (
-        <div className='grid lg:grid-cols-[300px,1fr] h-screen max-h-screen'>
+        <div className='grid lg:grid-cols-[300px,1fr] h-screen max-h-screen home'>
             <section className={`bg-white ${!basePath && "hidden"} lg:block`}>
                 <Sidebar/>
             </section>
