@@ -27,6 +27,7 @@ const NewGroupUser = ({onClose}) => {
     const dispatch = useDispatch();
     const axiosJWT = createAxios(user, dispatch, setAll);
     const uploadPhotoRef = useRef()
+    const accessToken = localStorage.getItem('token')
     const handleOpenUploadPhoto = (e) => {
         e.preventDefault()
         e.stopPropagation()
@@ -63,7 +64,7 @@ const NewGroupUser = ({onClose}) => {
                 search: search,
                 userId: user?._id
             }
-            const response = await searchUser(data, user?.accessToken, axiosJWT)
+            const response = await searchUser(data, accessToken, axiosJWT)
             setLoading(false)
 
             setSearchUser(response?.data);
@@ -73,6 +74,7 @@ const NewGroupUser = ({onClose}) => {
         }
     }
     const handleSubmit = async () => {
+        console.log("abc")
         if (selectedUser.id.length === 0) {
             return toast.error('Vui lòng chọn người dùng để tạo nhóm mới!')
         }
@@ -88,13 +90,18 @@ const NewGroupUser = ({onClose}) => {
             receiver: Array.from(selectedUser.id).concat(user?._id),
         }
         if (socketConnection) {
-            socketConnection.emit('new-group', data)
-            toast.success('Tạo nhóm mới thành công!')
-            navigate('/')
-            setAvatar('')
-            setName('')
-            setSelectedUser([])
-            onClose();
+            try {
+                socketConnection.emit('new-group', data)
+                toast.success('Tạo nhóm mới thành công!')
+                navigate('/')
+                setAvatar('')
+                setName('')
+                setSelectedUser([])
+                onClose();
+            } catch (error) {
+                toast.error(error?.response?.data?.message)
+            }
+
         }
     }
 
@@ -173,7 +180,7 @@ const NewGroupUser = ({onClose}) => {
                             searchUserData.length !== 0 && !loading && (
                                 searchUserData.map((user, index) => {
                                     return (
-                                        <div className="flex items-center">
+                                        <div className="flex items-center" key={index}>
                                             <UserSearchCard key={user._id} user={user} onClose={onClose}/>
                                             <input type="checkbox" key={index} id={user?._id} data-name={user?.name}
                                                    value={user?._id}

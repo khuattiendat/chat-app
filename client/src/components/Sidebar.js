@@ -11,7 +11,7 @@ import {FiArrowUpLeft} from "react-icons/fi";
 import SearchUser from './SearchUser';
 import {FaImage} from "react-icons/fa6";
 import {FaVideo} from "react-icons/fa6";
-import {logout, setAll, setUser} from '../redux/userSlice';
+import {logout, setAll} from '../redux/userSlice';
 import {logoutDB} from "../apis/auth";
 import {createAxios} from "../utils/createInstance";
 import toast from "react-hot-toast";
@@ -27,18 +27,16 @@ const Sidebar = () => {
     const socketConnection = useSelector(state => state?.user?.socketConnection)
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const accessToken = user?.accessToken
+    const accessToken = localStorage.getItem('token')
     const axiosJWT = createAxios(user, dispatch, setAll);
-    console.log("test2")
     useEffect(() => {
-        console.log("test1")
         if (socketConnection) {
             // gửi user id để lấy conversation
             socketConnection.emit('sidebar', user._id)
 
             // trả về data của conversation ( lastMsg, sender, receiver)
             socketConnection.on('conversation', (data) => {
-                console.log("data", data)
+                // console.log("data", data)
 
                 const conversationUserData = data.map((conversationUser, index) => {
                     if (conversationUser?.sender?._id === conversationUser?.receiver?._id) {

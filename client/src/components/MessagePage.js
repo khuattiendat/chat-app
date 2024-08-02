@@ -13,7 +13,6 @@ import Loading from './Loading';
 import backgroundImage from '../assets/wallapaper.jpeg'
 import {IoMdSend} from "react-icons/io";
 import moment from 'moment'
-import {getConversationById} from "../apis/conversations";
 import {createAxios} from "../utils/createInstance";
 import {setAll} from "../redux/userSlice";
 
@@ -26,6 +25,7 @@ const MessagePage = () => {
     const user = useSelector(state => state?.user)
     const onlineUser = user?.onlineUser;
     const axiosJWT = createAxios(user, dispatch, setAll);
+    const accessToken = localStorage.getItem('token')
     const [dataGroup, setDataGroup] = useState({
         conversationName: "",
         conversationType: "",
@@ -111,38 +111,23 @@ const MessagePage = () => {
         if (socketConnection) {
             if (groupId) {
                 socketConnection.emit('message-page', groupId)
-
-                socketConnection.emit('seen', user?._id)
+                //
+                // socketConnection.emit('seen', user?._id)
                 socketConnection.on('message-user', (data) => {
-                    console.log("message-user", data)
+                    // console.log("message-user", data)
                     // trả về thông tin user người gửi
                     setDataGroup(data)
                 })
-
-
+                //
+                //
                 socketConnection.on('message', (data) => {
                     // trả về toàn bộ tin nhắn
-                    console.log('message data', data)
+                    // console.log('message data', data)
                     setAllMessage(data)
                 })
             }
-            if (userId) {
-                socketConnection.emit('message-user-page', userId)
-                socketConnection.emit('seen', userId)
-                socketConnection.on('message-user', (data) => {
-                    console.log("message-user", data)
-                    // trả về thông tin user người gửi
-                    setDataUser(data)
-                })
-                socketConnection.on('message', (data) => {
-                    // trả về toàn bộ tin nhắn
-                    console.log('message data', data)
-                    setAllMessage(data)
-                })
-            }
-
         }
-    }, [socketConnection, groupId, user])
+    }, [socketConnection, groupId, user, accessToken])
 
     const handleOnChange = (e) => {
         const {name, value} = e.target
@@ -157,6 +142,7 @@ const MessagePage = () => {
 
     const handleSendMessage = (e) => {
         e.preventDefault()
+        console.log('send message', message)
 
         if (message.text || message.imageUrl || message.videoUrl) {
             if (socketConnection) {
@@ -236,6 +222,7 @@ const MessagePage = () => {
                         allMessage.map((msg, index) => {
                             return (
                                 <div
+                                    key={index}
                                     className={` p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${user._id === msg?.msgByUserId?.userId ? "ml-auto bg-teal-100" : "bg-white"}`}>
                                     <div className='w-full relative'>
                                         {

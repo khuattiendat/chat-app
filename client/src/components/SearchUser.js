@@ -17,6 +17,7 @@ const SearchUser = ({onClose}) => {
     const [search, setSearch] = useState("")
     const dispatch = useDispatch();
     const axiosJWT = createAxios(user, dispatch, setAll);
+    const accessToken = localStorage.getItem('token')
 
 
     const handleSearchUser = async () => {
@@ -26,7 +27,7 @@ const SearchUser = ({onClose}) => {
                 search: search,
                 userId: user?._id
             }
-            const response = await searchUser(data, user?.accessToken, axiosJWT)
+            const response = await searchUser(data, accessToken, axiosJWT)
             setLoading(false)
 
             setSearchUser(response?.data)
@@ -40,7 +41,7 @@ const SearchUser = ({onClose}) => {
         handleSearchUser()
     }, [search])
 
-    console.log("searchUserData", searchUserData)
+    // console.log("searchUserData", searchUserData)
     return (
         <div className='search__user fixed top-0 bottom-0 left-0 right-0 bg-slate-700 bg-opacity-40 p-2 z-10'>
             <div className='w-full max-w-lg mx-auto mt-10'>

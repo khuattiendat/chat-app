@@ -14,15 +14,17 @@ const refreshToken = async () => {
     }
 };
 export const createAxios = (user, dispatch, stateSuccess) => {
+    const accessToken = localStorage.getItem('token');
     const newInstance = axios.create({
         baseURL: `${URL}/api`,
     });
     newInstance.interceptors.request.use(
         async (config) => {
             let date = new Date();
-            const decodedToken = jwt_decode(user?.accessToken);
+            const decodedToken = jwt_decode(accessToken);
             if (decodedToken.exp < date.getTime() / 1000) {
                 const dataRefresh = await refreshToken();
+                localStorage.setItem('token', dataRefresh?.accessToken);
                 console.log("dataRefresh", user)
                 let newUserData = {
                     ...user,

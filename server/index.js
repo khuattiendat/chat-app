@@ -25,8 +25,12 @@ app.get('/', (request, response) => {
 //api endpoints
 app.use('/api', router)
 
-connectDB().then(() => {
-    server.listen(PORT, () => {
-        console.log("server running at " + PORT)
+connectDB()
+    .then(() => {
+        server.listen(PORT, () => {
+            console.log("server running at " + PORT)
+        })
     })
-})
+    .catch((error) => {
+        console.log("Something is wrong ", error)
+    })

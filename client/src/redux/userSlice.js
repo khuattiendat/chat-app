@@ -40,7 +40,6 @@ export const userSlice = createSlice({
             state.email = ""
             state.phone = ""
             state.profile_pic = ""
-            state.token = ""
             state.accessToken = ""
             state.socketConnection = null
         },

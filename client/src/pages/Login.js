@@ -34,6 +34,7 @@ const Login = () => {
             const response = await login(data);
             toast.success(response?.message)
             if (response.success) {
+                localStorage.setItem('token', response?.accessToken)
                 dispatch(setToken(response?.accessToken))
                 setData({
                     email: "",
@@ -42,8 +43,8 @@ const Login = () => {
 
                 navigate('/')
                 setLoading(false)
-
             }
+
             setLoading(false)
         } catch (e) {
             setLoading(false)

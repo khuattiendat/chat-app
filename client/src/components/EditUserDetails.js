@@ -11,7 +11,7 @@ import Loading from "./Loading";
 
 
 const EditUserDetails = ({onClose, user}) => {
-    const accessToken = user?.accessToken
+    const accessToken = localStorage.getItem('token')
     const dispatch = useDispatch()
     const axiosJWT = createAxios(user, dispatch, setAll);
     const [loading, setLoading] = useState(false)

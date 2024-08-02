@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react'
 import {useDispatch, useSelector} from 'react-redux'
 import {Outlet, useLocation, useNavigate} from 'react-router-dom'
-import {logout, setAll, setOnlineUser, setSocketConnection, setUser} from '../redux/userSlice'
+import {logout, setAll, setOnlineUser, setSocketConnection, setToken, setUser} from '../redux/userSlice'
 import Sidebar from '../components/Sidebar'
 import logo from '../assets/logo.png'
 import io from 'socket.io-client'
@@ -14,9 +14,10 @@ const Home = () => {
     const navigate = useNavigate()
     const location = useLocation()
     const axiosJWT = createAxios(user, dispatch, setAll);
+    const accessToken = localStorage.getItem('token')
     const fetchUserDetails = async () => {
         try {
-            const userDetail = await getUserDetail(user?.accessToken, axiosJWT);
+            const userDetail = await getUserDetail(accessToken, axiosJWT);
             dispatch(setUser(userDetail?.data))
         } catch (error) {
             console.log("error", error)
@@ -24,8 +25,11 @@ const Home = () => {
     }
 
     useEffect(() => {
-        if (!user.accessToken) {
+        if (!accessToken) {
             navigate('/login')
+        }
+        if (!user.accessToken) {
+            setToken(accessToken)
         }
         fetchUserDetails()
     }, [])
@@ -34,16 +38,18 @@ const Home = () => {
     useEffect(() => {
         const socketConnection = io(process.env.REACT_APP_BACKEND_URL, {
             auth: {
-                accessToken: user?.accessToken
+                accessToken: accessToken
             },
         })
+        dispatch(setSocketConnection(socketConnection))
+
 
         socketConnection.on('onlineUser', (data) => {
-            console.log("data", data)
-            dispatch(setOnlineUser(data))
+            if (data) {
+                dispatch(setOnlineUser(data))
+            }
         })
 
-        dispatch(setSocketConnection(socketConnection))
 
         return () => {
             socketConnection.disconnect()
